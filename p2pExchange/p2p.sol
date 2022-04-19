@@ -26,10 +26,10 @@ contract p2pExchange {
 
     function makeRequest(uint amount_, string memory from_, string memory to_, uint rate_) public {
         Account storage account = accounts[msg.sender];
-        require(account.deposits[from] >= rate_ * amount_, "Does not have enough balance");
-        account.deposits[from] -= rate_ * amount_;
+        require(account.deposits[from_] >= rate_ * amount_, "Does not have enough balance");
+        account.deposits[from_] -= rate_ * amount_;
 
-        Exchange storage exchange_ = Exchange({
+        Exchange memory exchange_ = Exchange({
             amount: amount_,
             from: from_,
             to: to_,
@@ -42,7 +42,7 @@ contract p2pExchange {
             if(ex_.complete) {
                 continue;
             }
-            if(!(ex_.to == from_ && ex_.from == to_)) {
+            if(!( keccak256(bytes(ex_.to)) == keccak256(bytes(from_)) && keccak256(bytes(ex_.from)) == keccak256(bytes(to_)))) {
                 continue;
             }
             if(ex_.amount * ex_.rate <= rate_ * amount_) {
@@ -52,7 +52,7 @@ contract p2pExchange {
 
                 Account storage sAccount = accounts[ex_.owner];
                 sAccount.deposits[from_] -= amount_;
-                sAccount.deposit[to_] += ex_.amount * ex_.rate;
+                sAccount.deposits[to_] += ex_.amount * ex_.rate;
                 ex_.complete = true;
             }
         }
